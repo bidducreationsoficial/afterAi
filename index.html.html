@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AfterAi - Fully Working</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--bg:#0b1220;--card:#121a2b;--border:#1f2a44;--text:#e8eefc;--muted:#94a3b8;--accent:#4f8cff;}
+.light{--bg:#f3f6fb;--card:#fff;--border:#dbe2ef;--text:#0b1220;--muted:#5b6b86;--accent:#2563eb;}
+body{margin:0;font-family:Inter;background:var(--bg);color:var(--text);display:flex;min-height:100vh;flex-direction:column;}
+.sidebar{width:250px;background:var(--card);padding:20px;border-right:1px solid var(--border);flex-shrink:0}
+.logo{font-size:22px;margin-bottom:10px}
+.menu button{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text);cursor:pointer;transition:0.2s}
+.menu button:hover{background:var(--accent);color:#fff}
+.main{flex:1;display:flex;flex-direction:column}
+.header{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.workspace{flex:1;padding:20px;overflow:auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px;}
+textarea,input,select{width:100%;padding:8px;margin-top:10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text)}
+button{padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:var(--accent);color:#fff;cursor:pointer;transition:0.2s}
+button:hover{opacity:0.85;transform:scale(1.05);}
+img,canvas,video,svg{max-width:100%;margin-top:15px;border-radius:10px}
+.flex-row{display:flex;gap:10px;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+<div style="display:flex;flex:1">
+<div class="sidebar">
+  <div class="logo">AfterAi</div>
+  <input class="search" placeholder="Search tool..." oninput="toolSearch(this.value)">
+  <div class="menu" id="menu">
+    <button onclick="compressor()">Image Compressor</button>
+    <button onclick="converter()">Image Converter</button>
+    <button onclick="qrGen()">QR Generator</button>
+    <button onclick="qrScan()">QR Scanner</button>
+    <button onclick="tts()">Text To Speech</button>
+    <button onclick="stt()">Speech To Text</button>
+    <button onclick="videoTranscript()">Video To Transcript</button>
+    <button onclick="textPDF()">Text → PDF</button>
+    <button onclick="pdfText()">PDF → Text</button>
+    <button onclick="wordCounter()">Word Counter</button>
+    <button onclick="passGen()">Password Generator</button>
+    <button onclick="barcode()">Barcode Generator</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="header"><div>Dashboard</div><button onclick="toggleMode()" id="modeBtn">Night</button></div>
+  <div class="workspace" id="work">
+    <div class="card"><h2>Welcome to AfterAi</h2><p style="color:var(--muted)">Powered by Uthentines.</p></div>
+  </div>
+</div>
+</div>
+
+<script>
+function toggleMode(){
+ document.body.classList.toggle('light');
+ document.getElementById('modeBtn').innerText = document.body.classList.contains('light')?"Day":"Night";
+}
+function toolSearch(q){
+ document.querySelectorAll('.menu button').forEach(b=>{
+   b.style.display = b.innerText.toLowerCase().includes(q.toLowerCase())?'block':'none';
+ });
+}
+
+/* Image Compressor */
+function compressor(){
+const work = document.getElementById('work');
+work.innerHTML = '';
+const card = document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Image Compressor</h2>
+<input type="file" id="f"><br>
+<label>Quality</label><input type="range" id="q" min="0.1" max="1" step="0.1" value="0.7">
+<button>Compress</button>
+<img id="p"><a id="d" download="compressed.jpg"><button>Download</button></a>`;
+work.appendChild(card);
+
+const btn = card.querySelector('button');
+btn.addEventListener('click', ()=>{
+  const f = document.getElementById('f');
+  const q = document.getElementById('q');
+  const p = document.getElementById('p');
+  const d = document.getElementById('d');
+  if(!f.files[0]) return alert('Select an image');
+  const img = new Image();
+  img.src = URL.createObjectURL(f.files[0]);
+  img.onload = ()=>{
+    const c = document.createElement('canvas'); c.width=img.width;c.height=img.height;
+    c.getContext('2d').drawImage(img,0,0);
+    c.toBlob(b=>{
+      p.src=URL.createObjectURL(b);
+      d.href=p.src;
+    }, 'image/jpeg', q.value);
+  };
+});
+}
+
+/* Image Converter */
+function converter(){
+const work = document.getElementById('work');
+work.innerHTML='';
+const card = document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Image Converter</h2>
+<input type="file" id="cf">
+<select id="fmt"><option value="image/png">PNG</option><option value="image/jpeg">JPG</option><option value="image/webp">WEBP</option></select>
+<button>Convert</button>
+<img id="ci"><a id="cd"><button>Download</button></a>`;
+work.appendChild(card);
+
+card.querySelector('button').addEventListener('click', ()=>{
+  const cf = document.getElementById('cf');
+  const fmt = document.getElementById('fmt');
+  const ci = document.getElementById('ci');
+  const cd = document.getElementById('cd');
+  if(!cf.files[0]) return alert('Select an image');
+  const img = new Image(); img.src = URL.createObjectURL(cf.files[0]);
+  img.onload = ()=>{
+    const c = document.createElement('canvas'); c.width=img.width;c.height=img.height;
+    c.getContext('2d').drawImage(img,0,0);
+    c.toBlob(b=>{
+      ci.src=URL.createObjectURL(b);
+      cd.href=ci.src; cd.download='converted';
+    }, fmt.value, 0.9);
+  };
+});
+}
+
+/* QR Generator */
+function qrGen(){
+const work = document.getElementById('work');
+work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>QR Generator</h2><input placeholder="Enter text" id="qrText"><canvas id="qrCanvas"></canvas><button>Generate QR</button>`;
+work.appendChild(card);
+const btn = card.querySelector('button');
+btn.addEventListener('click', ()=>{
+  const text = document.getElementById('qrText').value;
+  const canvas = document.getElementById('qrCanvas');
+  QRCode.toCanvas(canvas, text, {width:200});
+});
+}
+
+/* QR Scanner */
+function qrScan(){
+const work = document.getElementById('work');
+work.innerHTML='';
+const card = document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>QR Scanner</h2><input type="file" id="qrFile"><p id="qrResult"></p><button>Scan QR</button>`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  const input = document.getElementById('qrFile'); const result = document.getElementById('qrResult');
+  if(!input.files[0]) return alert('Select an image');
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image(); img.src = e.target.result;
+    img.onload = ()=>{
+      const c = document.createElement('canvas'); c.width=img.width;c.height=img.height;
+      const ctx=c.getContext('2d'); ctx.drawImage(img,0,0);
+      const code = jsQR(ctx.getImageData(0,0,img.width,img.height).data,img.width,img.height);
+      result.innerText = code ? code.data : 'No QR Found';
+    };
+  };
+  reader.readAsDataURL(input.files[0]);
+});
+}
+
+/* Text To Speech */
+function tts(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Text To Speech</h2><textarea id="ttsText" placeholder="Enter text"></textarea><button>Speak</button>`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  const text = document.getElementById('ttsText').value;
+  speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+});
+
+/* Speech To Text */
+}
+function stt(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Speech To Text</h2><button>Start Listening</button><textarea readonly id="sttText"></textarea>`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  const textarea = document.getElementById('sttText');
+  const rec = new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+  rec.lang='en-US'; rec.interimResults=false;
+  rec.onresult = e=> textarea.value = e.results[0][0].transcript;
+  rec.start();
+});
+}
+
+/* Video To Transcript (placeholder) */
+function videoTranscript(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Video To Transcript</h2>
+<input type="file" accept="video/*"><textarea readonly placeholder="Use STT for audio transcription"></textarea>`;
+work.appendChild(card);
+}
+
+/* Text → PDF */
+function textPDF(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Text → PDF</h2><textarea id="tp"></textarea><button>Download PDF</button>`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF();
+  doc.text(document.getElementById('tp').value,10,10);
+  doc.save('text.pdf');
+});
+}
+
+/* PDF → Text */
+function pdfText(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>PDF → Text</h2><input type="file" id="pf"><textarea id="pt"></textarea>`;
+work.appendChild(card);
+document.getElementById('pf').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const data = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data}).promise;
+  let txt='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page = await pdf.getPage(i);
+    const c = await page.getTextContent();
+    txt += c.items.map(s=>s.str).join(' ') + '\n';
+  }
+  document.getElementById('pt').value = txt;
+});
+}
+
+/* Word Counter */
+function wordCounter(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Word Counter</h2><textarea id="wc"></textarea><p id="ws"></p>`;
+work.appendChild(card);
+document.getElementById('wc').addEventListener('input', ()=>{
+  const t = document.getElementById('wc').value.trim();
+  document.getElementById('ws').innerText="Words: "+(t?t.split(/\s+/).length:0)+" | Characters: "+t.length;
+});
+}
+
+/* Password Generator */
+function passGen(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Password Generator</h2>
+<label>Length:</label><input type="number" id="plen" value="12" min="4" max="64">
+<label>Include Symbols:</label><input type="checkbox" id="psym">
+<button>Generate</button>
+<input readonly id="passOut">`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  const len = parseInt(document.getElementById('plen').value);
+  const includeSym = document.getElementById('psym').checked;
+  let chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  if(includeSym) chars += '!@#$%^&*()_+{}[]';
+  let pass='';
+  for(let i=0;i<len;i++) pass += chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('passOut').value = pass;
+});
+}
+
+/* Barcode Generator */
+function barcode(){
+const work=document.getElementById('work'); work.innerHTML='';
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<h2>Barcode Generator</h2><input id="barText" placeholder="Enter text"><svg id="barSVG"></svg><button>Generate Barcode</button>`;
+work.appendChild(card);
+card.querySelector('button').addEventListener('click', ()=>{
+  JsBarcode(document.getElementById('barSVG'), document.getElementById('barText').value,{format:'CODE128',lineColor:'#000',width:2,height:50});
+});
+}
+</script>
+</body>
+</html>
